@@ -1,0 +1,2 @@
+# ShopEasy
+Django Based Website 
