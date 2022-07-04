@@ -1,8 +1,14 @@
 from django.shortcuts import render
+from category.models import Category
+from store.models import Product
 
 
 def home(request):
-    return render(request, 'index.html')
+    products = Product.objects.all().filter(is_available=True)
+    data = {
+        'products': products,
+    }
+    return render(request, 'index.html', data)
 
 
 def signin(request):
@@ -19,10 +25,6 @@ def cart(request):
 
 def dashboard(request):
     return render(request, 'dashboard.html')
-
-
-def store(request):
-    return render(request, 'store.html')
 
 
 def search_result(request):
