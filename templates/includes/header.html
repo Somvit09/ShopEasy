@@ -19,7 +19,7 @@
       </button>
       <div class="dropdown-menu">
         {% for i in categories %}
-        <a class="dropdown-item" href="#">{{i.category_name}}</a>
+          <a class="dropdown-item" href="{{i.get_url}}">{{i.category_name}}</a>
         {% endfor %}
       </div>
     </div>  <!-- category-wrap.// -->
