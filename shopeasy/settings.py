@@ -80,17 +80,22 @@ AUTH_USER_MODEL = 'accounts.Accounts'
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'shopeasyLocal',
+#         'USER': 'postgres',
+#         'PASSWORD': '1234',
+#         'HOST': 'localhost',
+#         'PORT': '5432',
+#     }
+# }
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'ddb3pb1lp7hv9e',
-        'USER': 'xshmrsargqjyfu',
-        'PASSWORD': '7dc3e7ae4d6b9b03a013176765fd653c41c21ef57264611c476acceef563000e',
-        'HOST': 'ec2-34-225-159-178.compute-1.amazonaws.com',
-        'PORT': '5432',
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': 'db.sqlite3'
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
