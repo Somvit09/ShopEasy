@@ -18,7 +18,7 @@
         <i class="fa fa-bars"></i> All category
       </button>
       <div class="dropdown-menu">
-        {% for i in categories %}
+        {% for i in links %}
           <a class="dropdown-item" href="{{i.get_url}}">{{i.category_name}}</a>
         {% endfor %}
       </div>

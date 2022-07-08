@@ -13,13 +13,8 @@ def storeHome(request, category_slug=None):
     else:
         products = Product.objects.all().filter(is_available=True)
         product_count = products.count()
-    # data = {
-    #     'products': products,
-    #     'product_count': product_count,
-    #     'categories': categories,
-    # }
-    data = dict(
-        products=products, product_count=product_count, categories=categories
-    )
-    print(data['categories'])
+    data = {
+        'products': products,
+        'product_count': product_count,
+    }
     return render(request, 'store.html', data)
