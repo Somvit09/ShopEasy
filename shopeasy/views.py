@@ -33,10 +33,6 @@ def search_result(request):
     return render(request, 'search_result.html')
 
 
-def product_details(request):
-    return render(request, 'product-detail.html')
-
-
 def order(request):
     return render(request, 'order_complete.html')
 

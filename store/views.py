@@ -17,4 +17,15 @@ def storeHome(request, category_slug=None):
         'products': products,
         'product_count': product_count,
     }
-    return render(request, 'store.html', data)
+    return render(request, 'store/store.html', data)
+
+
+def product_details(request, category_slug=None, product_slug=None):
+    try:
+        single_product = Product.objects.get(category__slug=category_slug, slug=product_slug) # __ to get the slug
+        # from the category model
+        # by the category in Product model
+    except Exception as e:
+        raise e
+    data = dict(single_product=single_product)
+    return render(request, 'store/product-detail.html', data)
