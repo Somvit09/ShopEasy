@@ -149,7 +149,7 @@
 						<del class="price-old">${{i.price}}</del>
 					</div> <!-- price-wrap.// -->
 				</div>
-				<a href="#" class="btn btn-block btn-success">Added to cart </a>
+				<a href="{% url 'add_cart' i.id %}" class="btn btn-block btn-primary">Add to cart </a>
 			</figcaption>
 		</figure>
 	</div> <!-- col.// -->

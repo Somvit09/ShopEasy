@@ -73,4 +73,4 @@ def cart(request, total=0, quantity=0, cart_items=None):
         tax=tax,
         grand_total=grand_total,
     )
-    return render(request, 'cart.html', data)
+    return render(request, 'store/cart.html', data)
