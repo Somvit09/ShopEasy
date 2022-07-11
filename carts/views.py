@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from store.models import Product
 from .models import Cart, CartItem
 
@@ -32,7 +32,26 @@ def add_cart(request, product_id):
             quantity=1,
         )
         cart_item.save()
-    print(cart_item.product, cart_item.cart, cart_item.quantity)
+    return redirect('cart')
+
+
+def remove_cart(request, product_id):
+    cart = Cart.objects.get(cart_id=_cart_id(request))
+    product = get_object_or_404(Product, id=product_id)
+    cart_item = CartItem.objects.get(cart=cart, product=product)
+    if cart_item.quantity > 1:
+        cart_item.quantity -= 1
+        cart_item.save()
+    else:
+        cart_item.delete()
+    return redirect('cart')
+
+
+def remove_cart_item(request, product_id):
+    cart = Cart.objects.get(cart_id=_cart_id(request))
+    product = get_object_or_404(Product, id=product_id)
+    cart_item = CartItem.objects.get(cart=cart, product=product)
+    cart_item.delete()
     return redirect('cart')
 
 
@@ -54,6 +73,4 @@ def cart(request, total=0, quantity=0, cart_items=None):
         tax=tax,
         grand_total=grand_total,
     )
-    for i in cart_items:
-        print(i.product)
     return render(request, 'cart.html', data)
