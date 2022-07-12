@@ -47,6 +47,7 @@ def search(request):
         print(keyword.capitalize())
         if keyword:
             products = Product.objects.order_by('-created_date').filter(Q(product_name__icontains=keyword.capitalize()) | Q(slug__icontains=keyword.capitalize()) | Q(category__slug__icontains=keyword.capitalize()) | Q(category__category_name__icontains=keyword.capitalize()))
-    data = dict(products=products)
+            product_count = products.count()
+    data = dict(products=products, product_count=product_count)
     print(data['products'])
     return render(request, 'store/search-result.html', data)
