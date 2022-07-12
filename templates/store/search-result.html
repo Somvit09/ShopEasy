@@ -133,6 +133,8 @@
 
 <div class="row">
 
+{% if products %}
+
 	{% for i in products %}
 	<div class="col-md-4">
 		<figure class="card card-product-grid">
@@ -155,7 +157,13 @@
 	</div> <!-- col.// -->
 	{% endfor %}
 
+{% else %}
 
+	<div class="text-center">
+		<h3>No Result Found. Please try again after some time.</h3>
+	</div>
+
+{% endif %}
 </div> <!-- row end.// -->
 
 
