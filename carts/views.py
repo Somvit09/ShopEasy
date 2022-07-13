@@ -14,19 +14,16 @@ def _cart_id(request):
 
 
 def add_cart(request, product_id):
+    product = Product.objects.get(id=product_id)
     if request.method == "POST":
         for i in request.POST:
             key = i
             value = request.POST[key]
             try:
-                variation_ = VariationModel.objects.get(variation_category__iexact=key, variation_value__iexact=value)
+                variation_ = VariationModel.objects.get(product=product, variation_category__iexact=key, variation_value__iexact=value)
                 print(variation_)
             except:
                 pass
-
-
-
-    product = Product.objects.get(id=product_id)
     try:
         cart_id = Cart.objects.get(cart_id=_cart_id(request))
     except Cart.DoesNotExist:
