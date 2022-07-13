@@ -5,6 +5,7 @@ from carts.models import CartItem
 from carts.views import _cart_id
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Q
+from .models import VariationModel
 
 
 # Create your views here.
@@ -28,9 +29,9 @@ def storeHome(request, category_slug=None):
 
 def product_details(request, category_slug=None, product_slug=None):
     try:
-        single_product = Product.objects.get(category__slug=category_slug, slug=product_slug) # __ to get the slug
-        # from the category model
-        # by the category in Product model
+        single_product = Product.objects.get(category__slug=category_slug,
+                                             slug=product_slug)  # __ to get the slug from the foreign model Category which is
+        # from the category model by the category in Product model
         in_cart = CartItem.objects.filter(cart__cart_id=_cart_id(request), product=single_product).exists()
     except Exception as e:
         raise e
@@ -45,7 +46,10 @@ def search(request):
     if 'keyword' in request.GET:
         keyword = request.GET['keyword']
         if keyword:
-            products = Product.objects.order_by('-created_date').filter(Q(product_name__icontains=keyword.capitalize()) | Q(slug__icontains=keyword.capitalize()) | Q(category__slug__icontains=keyword.capitalize()) | Q(category__category_name__icontains=keyword.capitalize()))
-            product_count = products.count()
+            products = Product.objects.order_by('-created_date').filter(
+                Q(product_name__icontains=keyword.capitalize()) | Q(slug__icontains=keyword.capitalize()) |
+                Q(category__slug__icontains=keyword.capitalize()) |
+                Q(category__category_name__icontains=keyword.capitalize()))
+            product_count = products.count()  # product_name__icontains means it will search keyword in the product name of Product model
     data = dict(products=products, product_count=product_count)
     return render(request, 'store/search-result.html', data)
