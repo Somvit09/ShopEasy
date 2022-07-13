@@ -33,7 +33,7 @@ class VariationManager(models.Manager):
 
 
 variation_choices = (
-    ('color', 'color_'), ('size', 'size_'),
+    ('color', 'color'), ('size', 'size'),
 )
 
 
