@@ -7,6 +7,7 @@ from django.contrib import messages
 # Create your views here.
 
 def signin(request):
+
     return render(request, 'accounts/signin.html')
 
 
