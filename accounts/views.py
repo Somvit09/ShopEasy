@@ -1,12 +1,22 @@
 from django.shortcuts import render, redirect
 from .forms import RegistrationForm
 from .models import Accounts
-from django.contrib import messages
+from django.contrib import messages, auth
 
 
 # Create your views here.
 
 def signin(request):
+    if request.method == "POST":
+        email = request.POST['email']
+        password = request.POST['password']
+        # user = Accounts.objects.filter(email=email, password=password).exists()
+        user = auth.authenticate(email=email, password=password)
+        if user is not None:
+            auth.login(request, user)
+            return redirect('home')
+        else:
+            return redirect('signin')
 
     return render(request, 'accounts/signin.html')
 
