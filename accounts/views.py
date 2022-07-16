@@ -26,7 +26,7 @@ def signin(request):
         if user is not None:
             auth.login(request, user)
             messages.success(request, "User Logged in Successfully")
-            return redirect('home')
+            return redirect('dashboard')
         else:
             messages.error(request, "Invalid Credentials. Please Try Again.")
             return redirect('signin')
@@ -75,10 +75,6 @@ def register(request):
     return render(request, 'accounts/register.html', data)
 
 
-def dashboard(request):
-    return render(request, 'accounts/dashboard.html')
-
-
 @login_required(login_url='signin')
 def logout(request):
     auth.logout(request)
@@ -90,10 +86,8 @@ def activate(request, uidb64, token):
     try:
         uid = urlsafe_base64_decode(uidb64).decode()
         user = Accounts._default_manager.get(pk=uid)
-        print(uid, user.full_name)
     except(TypeError, ValueError, OverflowError, Accounts.DoesNotExist):
         user = None
-    print(uid, user.full_name)
     if user is not None and default_token_generator.check_token(user, token):
         user.is_active = True
         user.save()
@@ -102,3 +96,8 @@ def activate(request, uidb64, token):
     else:
         messages.error(request, "Invalid activation link.")
         return redirect('register')
+
+
+@login_required(login_url='signin')
+def dashboard(request):
+    return render(request, 'accounts/dashboard.html')
