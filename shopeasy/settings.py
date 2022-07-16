@@ -155,3 +155,9 @@ MESSAGE_TAGS = {
 AUTH_USER_MODEL = 'accounts.Accounts'
 
 AUTHENTICATION_BACKENDS = ['django.contrib.auth.backends.AllowAllUsersModelBackend']
+
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'demo.mail.userforinquiry@gmail.com'
+EMAIL_HOST_PASSWORD = 'dhmszxlpobevduba'
+EMAIL_USE_TLS = True
