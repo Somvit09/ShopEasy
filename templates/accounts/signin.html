@@ -11,6 +11,7 @@
       <h4 class="card-title mb-4">Sign in</h4>
       <form action="{% url 'signin' %}" method="POST">
 				{% csrf_token %}
+				{% include 'includes/alerts.html' %}
           <div class="form-group">
 			 <input type="email" class="form-control" placeholder="Email Address" name="email">
           </div> <!-- form-group// -->

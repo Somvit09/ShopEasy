@@ -14,8 +14,10 @@ def signin(request):
         user = auth.authenticate(email=email, password=password)
         if user is not None:
             auth.login(request, user)
+            messages.success(request, "User Logged in Successfully")
             return redirect('home')
         else:
+            messages.error(request, "Invalid Credentials. Please Try Again.")
             return redirect('signin')
 
     return render(request, 'accounts/signin.html')
