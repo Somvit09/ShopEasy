@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from store.models import Product, VariationModel
 from .models import Cart, CartItem
 from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.auth.decorators import login_required
 
 
 # Create your views here.
@@ -21,7 +22,8 @@ def add_cart(request, product_id):
             key = i
             value = request.POST[key]
             try:
-                variation_ = VariationModel.objects.get(product=product, variation_category__iexact=key, variation_value__iexact=value)
+                variation_ = VariationModel.objects.get(product=product, variation_category__iexact=key,
+                                                        variation_value__iexact=value)
                 product_variation.append(variation_)
             except:
                 pass
@@ -97,12 +99,15 @@ def cart(request, total=0, quantity=0, cart_items=None):
     try:
         tax = 0
         grand_total = 0
-        cart = Cart.objects.get(cart_id=_cart_id(request))
-        cart_items = CartItem.objects.filter(cart=cart, is_active=True)
+        if request.user.is_authenticated:
+            cart_items = CartItem.objects.filter(user=request.user, is_active=True)
+        else:
+            cart = Cart.objects.get(cart_id=_cart_id(request))
+            cart_items = CartItem.objects.filter(cart=cart, is_active=True)
         for item in cart_items:
             total += (item.product.price) * item.quantity
             quantity += item.quantity
-        tax = int(total * (2.25/100))
+        tax = int(total * (2.25 / 100))
         grand_total = int(tax + total)
     except ObjectDoesNotExist:
         pass
@@ -116,6 +121,7 @@ def cart(request, total=0, quantity=0, cart_items=None):
     return render(request, 'store/cart.html', data)
 
 
+@login_required(login_url='signin')
 def checkout(request, total=0, quantity=0, cart_items=None):
     try:
         tax = 0
@@ -125,7 +131,7 @@ def checkout(request, total=0, quantity=0, cart_items=None):
         for item in cart_items:
             total += (item.product.price) * item.quantity
             quantity += item.quantity
-        tax = int(total * (2.25/100))
+        tax = int(total * (2.25 / 100))
         grand_total = int(tax + total)
     except ObjectDoesNotExist:
         pass
