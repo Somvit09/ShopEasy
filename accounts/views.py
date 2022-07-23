@@ -5,6 +5,7 @@ from .models import Accounts
 from django.contrib import messages, auth
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
+import requests
 
 # email verification
 from django.contrib.sites.shortcuts import get_current_site
@@ -31,14 +32,48 @@ def signin(request):
                 is_cart_item_exists = CartItem.objects.filter(cart=cart).exists()
                 if is_cart_item_exists:
                     cart_item = CartItem.objects.filter(cart=cart)
+                    # getting the variations
+                    product_variation = []
+                    for item in cart_item:
+                        variation = item.variations.all()
+                        product_variation.append(variation)
+
+                    cart_item = CartItem.objects.filter(user=user)
+                    existing_variation_list = []
+                    ids = []
                     for i in cart_item:
-                        i.user = user
-                        i.save()
+                        existing_variations = i.variations.all()
+                        existing_variation_list.append(list(existing_variations))
+                        ids.append(i.id)
+
+                    for i in product_variation:
+                        if i in existing_variation_list:
+                            index = existing_variation_list.index(i)
+                            item_id = ids[index]
+                            item = CartItem.objects.get(id=item_id)
+                            item.quantity += 1
+                            item.user = user
+                            item.save()
+                        else:
+                            cart_item = CartItem.objects.filter(cart=cart)
+                            for j in cart_item:
+                                j.user = user
+                                j.save()
             except:
                 pass
             auth.login(request, user)
             messages.success(request, "User Logged in Successfully")
-            return redirect('dashboard')
+            url = request.META.get('HTTP_REFERER') # grab the previous url from path
+            try:
+                query = requests.utils.urlparse(url).query
+                # the path from the query will be "next=/cart/checkout/" like this
+                # now we have to do the path like a dictionary like {"next": "/cart/checkout/"}
+                params = dict(x.split('=') for x in query.split('&'))
+                if 'next' in params:
+                    nextpage = params['next']
+                    return redirect(nextpage)
+            except:
+                return redirect('dashboard')
         else:
             messages.error(request, "Invalid Credentials. Please Try Again.")
             return redirect('signin')
