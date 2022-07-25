@@ -14,6 +14,7 @@ from pathlib import Path
 from django.core.management.utils import get_random_secret_key
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
+import Order.apps
 import accounts.apps
 import carts.apps
 import category.apps
@@ -35,6 +36,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'Order.apps.OrderConfig',
     'carts.apps.CartsConfig',
     'store.apps.StoreConfig',
     'accounts.apps.AccountsConfig',
