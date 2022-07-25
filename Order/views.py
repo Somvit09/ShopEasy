@@ -1,8 +1,9 @@
 from django.shortcuts import render, redirect
 from carts.models import CartItem
 from .forms import OrderForm
-from .models import Order
+from .models import Order, Payment
 import datetime
+import json
 from django.http import HttpResponse
 
 
@@ -12,7 +13,6 @@ def place_order(request, total=0, quantity=0):
     # # at first we need to see if the user has anything in cart, if not then redirect to store
     user = request.user
     cart = CartItem.objects.filter(user=user)
-    print(cart)
     if cart.count() <= 0:
         return redirect('storeHome')
 
@@ -21,8 +21,8 @@ def place_order(request, total=0, quantity=0):
     for i in cart:
         total += (i.product.price * i.quantity)
         quantity += i.quantity
-    tax = total * (2.25 / 100)
-    grand_total = tax + total
+    tax = int(total * (2.25 / 100))
+    grand_total = int(tax + total)
     if request.method == 'POST':
         form = OrderForm(request.POST)
         if form.is_valid():
@@ -41,18 +41,42 @@ def place_order(request, total=0, quantity=0):
             data.order_note = form.cleaned_data['order_note']
             data.order_total = grand_total
             data.tax = tax
-            data.ip = request.META.get('REMOTE_ADDR')
+            data.ip = request.META.get('REMOTE_ADDR')  # get the ip of the user
             data.save()
             # Generate order number
             yr = int(datetime.date.today().strftime('%Y'))
             dt = int(datetime.date.today().strftime('%d'))
             mt = int(datetime.date.today().strftime('%m'))
             d = datetime.date(yr, mt, dt)
-            current_date = d.strftime("%Y%m%d") #20210305
+            current_date = d.strftime("%Y%m%d")
             order_number = current_date + str(data.id)
             data.order_number = order_number
             data.save()
-            return redirect('checkout')
 
-    # return render(request, 'order/place-order.html')
+            # creating order object
+            order = Order.objects.get(user=user, is_ordered=False, order_number=order_number)
+            instance = dict(
+                order=order, cart_items=cart, total=total, grand_total=grand_total, tax=tax,
+            )
+            return render(request, 'order/payments.html', instance)
 
+    return render(request, 'order/place-order.html')
+
+
+def payment(request):
+    body = json.loads(request.body)
+    # store details in the payment model
+    user = request.user
+    order = Order.objects.get(user=user, order_number=body['orderId'], is_ordered=False)
+    pay_obj = Payment(
+        user=user,
+        payment_id=body['transactionId'],
+        payment_method=body['payment_method'],
+        status=body['transactionStatus'],
+        amount_paid=order.order_total,
+    )
+    pay_obj.save()
+    order.payment = pay_obj
+    order.is_ordered = True
+    order.save()
+    return render(request, 'order/payments.html')
