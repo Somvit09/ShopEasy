@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from carts.models import CartItem
 from .forms import OrderForm
-from .models import Order, Payment
+from .models import Order, Payment, Order_product
 import datetime
 import json
 from django.http import HttpResponse
@@ -79,4 +79,18 @@ def payment(request):
     order.payment = pay_obj
     order.is_ordered = True
     order.save()
+
+    # now we have to save the order and payment details in order_product model
+
+    cart_items = CartItem.objects.filter(user=user)
+    for items in cart_items:
+        order_product = Order_product()
+        order_product.user_id = user.id
+        order_product.order_id = order.id
+        order_product.payment = pay_obj
+        order_product.product_id = items.product_id
+        order_product.quantity = items.quantity
+        order_product.product_price = items.product.price
+        order_product.is_ordered = True
+        order_product.save()
     return render(request, 'order/payments.html')
