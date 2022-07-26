@@ -4,7 +4,12 @@ from .forms import OrderForm
 from .models import Order, Payment, Order_product
 import datetime
 import json
-from django.http import HttpResponse
+from carts.models import Product
+from django.http import JsonResponse
+# email verification
+from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import EmailMessage
+from django.template.loader import render_to_string
 
 
 # Create your views here.
@@ -81,7 +86,6 @@ def payment(request):
     order.save()
 
     # now we have to save the order and payment details in order_product model
-
     cart_items = CartItem.objects.filter(user=user)
     for items in cart_items:
         order_product = Order_product()
@@ -93,4 +97,59 @@ def payment(request):
         order_product.product_price = items.product.price
         order_product.is_ordered = True
         order_product.save()
-    return render(request, 'order/payments.html')
+
+        # now get the variations to save with the order
+        cart_item = CartItem.objects.get(id=items.id)
+        variations = cart_item.variations.all()
+        orderproduct = Order_product.objects.get(id=order_product.id)
+        orderproduct.variations.set(variations)
+        orderproduct.save()
+
+        # now we have to reduce the stock of that product after a successful order
+        product = Product.objects.get(id=items.product_id)
+        product.stock -= items.quantity
+        product.save()
+
+    # after a successful order we have to delete the cart items for that particular user
+    CartItem.objects.filter(user=user).delete()
+
+    # after that we have to send mail to that user about the order and transaction information
+    mail_subject = "Order Id and Transaction Id verification"
+    message = render_to_string('order/order_verification.html', dict(
+        user=user,
+        order=order,
+        payment=pay_obj,
+    ))
+    mail = user.email
+    send_mail = EmailMessage(mail_subject, message, to=[mail, ])
+    send_mail.send()
+
+    # now send back to the function by json data response
+    data = dict(
+        order_number=order.order_number,
+        transaction_id=pay_obj.payment_id,
+    )
+    return JsonResponse(data)
+
+
+def payment_success(request):
+    order_number = request.GET.get('order_number')
+    payment_id = request.GET.get('payment_id')
+
+    try:
+        order = Order.objects.get(order_number=order_number)
+        order_product = Order_product.objects.filter(order_id=order.id)
+        payment_id = Payment.objects.get(payment_id=payment_id)
+        subtotal = 0
+        for i in order_product:
+            subtotal += i.product_price * i.quantity
+        data = dict(
+            order=order,
+            order_product=order_product,
+            transaction_id=payment_id.payment_id,
+            payment=payment_id,
+            subtotal=subtotal,
+        )
+        return render(request, 'order/order_complete.html', data)
+    except (Payment.DoesNotExist, Order.DoesNotExist):
+        return redirect('home')
