@@ -1,7 +1,7 @@
 import django.utils.http
-from django.shortcuts import render, redirect
-from .forms import RegistrationForm
-from .models import Accounts
+from django.shortcuts import render, redirect, get_object_or_404
+from .forms import RegistrationForm, UserForm, UserProfileForm
+from .models import Accounts, UserProfile
 from django.contrib import messages, auth
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
@@ -163,6 +163,28 @@ def my_orders(request):
         orders=orders,
     )
     return render(request, 'accounts/my_orders.html', data)
+
+
+@login_required(login_url='signin')
+def edit_profile(request):
+    user_profile = get_object_or_404(UserProfile, user=request.user)
+    if request.method == "POST":
+        user_form = UserForm(request.POST, instance=request.user)
+        user_profile_form = UserProfileForm(request.POST, request.FILES, instance=user_profile)
+        if user_form.is_valid() and user_profile_form.is_valid():
+            user_form.save()
+            user_profile_form.save()
+            messages.success(request, "Your profile has been updated.")
+            return redirect('edit_profile')
+    else:
+        user_form = UserForm(instance=request.user)
+        user_profile_form = UserProfileForm(instance=user_profile)
+    data = dict(
+        user_form=user_form,
+        profile_form=user_profile_form,
+        user_profile=user_profile,
+    )
+    return render(request, 'accounts/edit_profile.html', data)
 
 
 def forgot_password(request):
