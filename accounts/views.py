@@ -16,6 +16,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import EmailMessage
 from carts.views import _cart_id
 from carts.models import Cart, CartItem
+from Order.models import Order, Order_product
 
 
 # Create your views here.
@@ -63,7 +64,7 @@ def signin(request):
                 pass
             auth.login(request, user)
             messages.success(request, "User Logged in Successfully")
-            url = request.META.get('HTTP_REFERER') # grab the previous url from path
+            url = request.META.get('HTTP_REFERER')  # grab the previous url from path
             try:
                 query = requests.utils.urlparse(url).query
                 # the path from the query will be "next=/cart/checkout/" like this
@@ -147,7 +148,21 @@ def activate(request, uidb64, token):
 
 @login_required(login_url='signin')
 def dashboard(request):
-    return render(request, 'accounts/dashboard.html')
+    orders = Order.objects.order_by('-created_at').filter(user_id=request.user.id, is_ordered=True)
+    order_count = orders.count()
+    data = dict(
+        order_count=order_count,
+    )
+    return render(request, 'accounts/dashboard.html', data)
+
+
+@login_required(login_url='signin')
+def my_orders(request):
+    orders = Order.objects.order_by('-created_at').filter(user_id=request.user.id, is_ordered=True)
+    data = dict(
+        orders=orders,
+    )
+    return render(request, 'accounts/my_orders.html', data)
 
 
 def forgot_password(request):

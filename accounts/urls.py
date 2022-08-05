@@ -11,4 +11,6 @@ urlpatterns = [
     # email verification
     path('activate/<uidb64>/<token>/', views.activate, name='activate'),
     path('reset_password_validation/<uidb64>/<token>/', views.reset_password_validation, name='reset_password_validation'),
+
+    path('my_orders/', views.my_orders, name='my_orders'),
 ]
