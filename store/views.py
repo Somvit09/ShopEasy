@@ -8,6 +8,7 @@ from django.db.models import Q
 from .forms import ReviewFrom
 from .models import VariationModel, ReviewRating
 from django.contrib import messages
+from Order.models import Order, Order_product
 
 
 # Create your views here.
@@ -37,9 +38,21 @@ def product_details(request, category_slug=None, product_slug=None):
         in_cart = CartItem.objects.filter(cart__cart_id=_cart_id(request), product=single_product).exists()
     except Exception as e:
         raise e
+    if request.user.is_authenticated:
+        try:
+            order_product = Order_product.objects.filter(product_id=single_product.id, user=request.user).exists()
+        except Order_product.DoesNotExist:
+            order_product = None
+    else:
+        order_product = None
+
+    # getting all the reviews
+    reviews = ReviewRating.objects.filter(product_id=single_product.id, status=True)
     data = dict(
         single_product=single_product,
         in_cart=in_cart,
+        order_product=order_product,
+        reviews=reviews,
     )
     return render(request, 'store/product-detail.html', data)
 
