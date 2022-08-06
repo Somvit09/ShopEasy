@@ -5,6 +5,7 @@ from .models import Accounts, UserProfile
 from django.contrib import messages, auth
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
+from django.contrib.auth import logout
 import requests
 
 # email verification
@@ -150,8 +151,10 @@ def activate(request, uidb64, token):
 def dashboard(request):
     orders = Order.objects.order_by('-created_at').filter(user_id=request.user.id, is_ordered=True)
     order_count = orders.count()
+    profile_picture = UserProfile.objects.get(user_id=request.user.id)
     data = dict(
         order_count=order_count,
+        user_profile=profile_picture,
     )
     return render(request, 'accounts/dashboard.html', data)
 
@@ -185,6 +188,42 @@ def edit_profile(request):
         user_profile=user_profile,
     )
     return render(request, 'accounts/edit_profile.html', data)
+
+
+@login_required(login_url='signin')
+def change_password(request):
+    if request.method == "POST":
+        user_object = Accounts.objects.get(username__exact=request.user.username)
+        current_password = request.POST['current_password']
+        new_password = request.POST['new_password']
+        confirm_password = request.POST['confirm_password']
+        if new_password == confirm_password:
+            if user_object.check_password(current_password):
+                user_object.set_password(new_password)
+                user_object.save()
+                messages.success(request, "Password has been changed successfully. Please login with new password")
+                return redirect('signin')
+            else:
+                messages.error(request, "Password does not exist. Please retype your current password")
+                return redirect('change_password')
+        else:
+            messages.error(request, "Password did not match. Please retype your new password.")
+            return redirect('change_password')
+
+    return render(request, 'accounts/change_password.html')
+
+
+@login_required(login_url='signin')
+def order_detail(request, order_id):
+    order_details = Order_product.objects.filter(order__order_number=order_id)
+    order = Order.objects.get(order_number=order_id)
+    subtotal = order.order_total - order.tax
+    data = dict(
+        order_detail=order_details,
+        order=order,
+        subtotal=subtotal,
+    )
+    return render(request, 'accounts/order_detail.html', data)
 
 
 def forgot_password(request):
