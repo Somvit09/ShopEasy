@@ -1,10 +1,7 @@
-asgiref
-boto3
-botocore
 certifi
 chardet
 Django
-django-admin-honeypot
+
 django-admin-thumbnails
 django-session-timeout
 django-storages
@@ -16,8 +13,8 @@ python-dateutil
 python-decouple
 pytz
 requests
-s3transfer
 six
 sqlparse
 urllib3
-asgiref
+gunicorn
+psycopg2
