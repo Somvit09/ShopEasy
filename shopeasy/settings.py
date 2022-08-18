@@ -32,7 +32,7 @@ SECRET_KEY = config('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1', 'shopeasy-main.herokuapp.com']
+ALLOWED_HOSTS = ['127.0.0.1', 'shopeasy-main.herokuapp.com', 'localhost', '0.0.0.0']
 
 # Application definition
 
