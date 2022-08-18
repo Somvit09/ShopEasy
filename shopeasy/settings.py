@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 import os.path
 from pathlib import Path
+
+import whitenoise.middleware
 from django.core.management.utils import get_random_secret_key
 from decouple import config
 
@@ -60,6 +62,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django_session_timeout.middleware.SessionTimeoutMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 
 SESSION_EXPIRE_SECONDS = 3600  # 1 hour
@@ -145,7 +148,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 STATICFILES_DIRS = [
-    'shopeasy/static',
+    os.path.join(BASE_DIR, 'shopeasy/static'),
 ]
 
 MEDIA_URL = '/media/'
