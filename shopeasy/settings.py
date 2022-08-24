@@ -95,6 +95,7 @@ AUTH_USER_MODEL = 'accounts.Accounts'
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
+# database for local sqlite3
 # DATABASES = {
 #    'default': {
 #        'ENGINE': 'django.db.backends.sqlite3',
@@ -102,16 +103,34 @@ AUTH_USER_MODEL = 'accounts.Accounts'
 #    }
 # }
 
-DATABASES = {
-     'default': {
-         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-         'NAME': 'df3jojucrmbog6',
-         'USER': 'tbcblihcjwnkwb',
-         'PASSWORD': '131391641646a1a8867b138d43404de783f52d8c284ebfa75731e46e55463c5d',
-         'HOST': 'ec2-34-193-44-192.compute-1.amazonaws.com',
-         'PORT': '5432',
-    }
-}
+# database for Heroku server
+# DATABASES = {
+#      'default': {
+#          'ENGINE': 'django.db.backends.postgresql_psycopg2',
+#          'NAME': 'df3jojucrmbog6',
+#          'USER': 'tbcblihcjwnkwb',
+#          'PASSWORD': '131391641646a1a8867b138d43404de783f52d8c284ebfa75731e46e55463c5d',
+#          'HOST': 'ec2-34-193-44-192.compute-1.amazonaws.com',
+#          'PORT': '5432',
+#     }
+# }
+
+# database for local postgres server
+# DATABASES = {
+#      'default': {
+#          'ENGINE': 'django.db.backends.postgresql',
+#          'NAME': 'shopeasy',
+#          'USER': 'postgres',
+#          'PASSWORD': '1234',
+#          'HOST': '127.0.0.1',
+#          'PORT': '5432',
+#     }
+# }
+
+import dj_database_url
+DATABASES = {'default': dj_database_url.config(default='postgres://postgres:1234@127.0.0.1/shopeasy')}
+
+
 
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators

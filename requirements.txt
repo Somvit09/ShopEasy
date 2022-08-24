@@ -2,6 +2,7 @@ asgiref==3.5.2
 certifi==2022.6.15
 chardet==5.0.0
 charset-normalizer==2.1.0
+dj-database-url==1.0.0
 Django==3.2
 django-admin-honeypot==1.1.0
 django-admin-thumbnails==0.2.6
