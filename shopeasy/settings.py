@@ -107,11 +107,11 @@ AUTH_USER_MODEL = 'accounts.Accounts'
 # DATABASES = {
 #      'default': {
 #          'ENGINE': 'django.db.backends.postgresql_psycopg2',
-#          'NAME': 'df3jojucrmbog6',
-#          'USER': 'tbcblihcjwnkwb',
-#          'PASSWORD': '131391641646a1a8867b138d43404de783f52d8c284ebfa75731e46e55463c5d',
-#          'HOST': 'ec2-34-193-44-192.compute-1.amazonaws.com',
-#          'PORT': '5432',
+#          'NAME': config("HEROKU_DB_NAME"),
+#          'USER': config("HEROKU_DB_USER"),
+#          'PASSWORD': config("HEROKU_DB_PASSWORD"),
+#          'HOST': config("HEROKU_DB_HOST"),
+#          'PORT': config("HEROKU_DB_PORT"),
 #     }
 # }
 
@@ -119,16 +119,16 @@ AUTH_USER_MODEL = 'accounts.Accounts'
 # DATABASES = {
 #      'default': {
 #          'ENGINE': 'django.db.backends.postgresql',
-#          'NAME': 'shopeasy',
+#          'NAME': config("DB_NAME"),
 #          'USER': 'postgres',
-#          'PASSWORD': '1234',
-#          'HOST': '127.0.0.1',
+#          'PASSWORD': config("DB_PASSWORD"),
+#          'HOST': config("HOST"),
 #          'PORT': '5432',
 #     }
 # }
 
 import dj_database_url
-DATABASES = {'default': dj_database_url.config(default='postgres://postgres:1234@127.0.0.1/shopeasy')}
+DATABASES = {'default': dj_database_url.config(default=f'postgres://{config("DB_USER")}:{config("DB_PASSWORD")}@{config("DB_HOST")}/{config("DB_NAME")}')}
 
 
 
