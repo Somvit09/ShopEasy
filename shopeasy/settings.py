@@ -14,6 +14,7 @@ from pathlib import Path
 
 import whitenoise.middleware
 from django.core.management.utils import get_random_secret_key
+# pip install python-decouple
 from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -95,15 +96,15 @@ AUTH_USER_MODEL = 'accounts.Accounts'
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
-# database for local sqlite3
-# DATABASES = {
-#    'default': {
-#        'ENGINE': 'django.db.backends.sqlite3',
-#        'NAME': 'db.sqlite3'
-#    }
-# }
+# database for local sqlite3  # working with data
+DATABASES = {
+   'default': {
+       'ENGINE': 'django.db.backends.sqlite3',
+       'NAME': 'db.sqlite3'
+   }
+}
 
-# database for Heroku server
+# database for Heroku server  # working without data
 # DATABASES = {
 #      'default': {
 #          'ENGINE': 'django.db.backends.postgresql_psycopg2',
@@ -115,7 +116,7 @@ AUTH_USER_MODEL = 'accounts.Accounts'
 #     }
 # }
 
-# database for local postgres server
+# database for local postgres server ...working without data
 # DATABASES = {
 #      'default': {
 #          'ENGINE': 'django.db.backends.postgresql',
@@ -127,8 +128,8 @@ AUTH_USER_MODEL = 'accounts.Accounts'
 #     }
 # }
 
-import dj_database_url
-DATABASES = {'default': dj_database_url.config(default=f'postgres://{config("DB_USER")}:{config("DB_PASSWORD")}@{config("DB_HOST")}/{config("DB_NAME")}')}
+# import dj_database_url  # working without data
+# DATABASES = {'default': dj_database_url.config(default=f'postgres://{config("DB_USER")}:{config("DB_PASSWORD")}@{config("DB_HOST")}/{config("DB_NAME")}')}
 
 
 
@@ -183,8 +184,6 @@ from django.contrib.messages import constants as messages
 MESSAGE_TAGS = {
     messages.ERROR: 'danger',
 }
-
-AUTH_USER_MODEL = 'accounts.Accounts'
 
 AUTHENTICATION_BACKENDS = ['django.contrib.auth.backends.AllowAllUsersModelBackend']
 
