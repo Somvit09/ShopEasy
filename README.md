@@ -1,5 +1,5 @@
 # ShopEasy
-A Django framework based website with interacting UI and have functionalities like Authentication, send mail, order, see card items, make variations in items, paypal payment gateway. 
+A Django framework based website with interacting UI and have functionalities like Authentication, send mail, order, see cart items, make variations in items, paypal payment gateway. 
 
 Project Setup -----
 
