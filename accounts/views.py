@@ -15,6 +15,8 @@ from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import EmailMessage
+from smtplib import SMTPException
+
 from carts.views import _cart_id
 from carts.models import Cart, CartItem
 from Order.models import Order, Order_product
@@ -23,63 +25,68 @@ from Order.models import Order, Order_product
 # Create your views here.
 
 def signin(request):
-    if request.method == "POST":
-        email = request.POST['email']
-        password = request.POST['password']
-        # user = Accounts.objects.filter(email=email, password=password).exists()
-        user = auth.authenticate(email=email, password=password)
-        if user is not None:
-            try:
-                cart = Cart.objects.get(cart_id=_cart_id(request))
-                is_cart_item_exists = CartItem.objects.filter(cart=cart).exists()
-                if is_cart_item_exists:
-                    cart_item = CartItem.objects.filter(cart=cart)
-                    # getting the variations
-                    product_variation = []
-                    for item in cart_item:
-                        variation = item.variations.all()
-                        product_variation.append(variation)
+    try:
+        if request.method == "POST":
+            email = request.POST['email']
+            password = request.POST['password']
+            # user = Accounts.objects.filter(email=email, password=password).exists()
+            user = auth.authenticate(email=email, password=password)
+            if user is not None:
+                try:
+                    cart = Cart.objects.get(cart_id=_cart_id(request))
+                    is_cart_item_exists = CartItem.objects.filter(cart=cart).exists()
+                    if is_cart_item_exists:
+                        cart_item = CartItem.objects.filter(cart=cart)
+                        # getting the variations
+                        product_variation = []
+                        for item in cart_item:
+                            variation = item.variations.all()
+                            product_variation.append(variation)
 
-                    cart_item = CartItem.objects.filter(user=user)
-                    existing_variation_list = []
-                    ids = []
-                    for i in cart_item:
-                        existing_variations = i.variations.all()
-                        existing_variation_list.append(list(existing_variations))
-                        ids.append(i.id)
+                        cart_item = CartItem.objects.filter(user=user)
+                        existing_variation_list = []
+                        ids = []
+                        for i in cart_item:
+                            existing_variations = i.variations.all()
+                            existing_variation_list.append(list(existing_variations))
+                            ids.append(i.id)
 
-                    for i in product_variation:
-                        if i in existing_variation_list:
-                            index = existing_variation_list.index(i)
-                            item_id = ids[index]
-                            item = CartItem.objects.get(id=item_id)
-                            item.quantity += 1
-                            item.user = user
-                            item.save()
-                        else:
-                            cart_item = CartItem.objects.filter(cart=cart)
-                            for j in cart_item:
-                                j.user = user
-                                j.save()
-            except:
-                pass
-            auth.login(request, user)
-            messages.success(request, "User Logged in Successfully")
-            url = request.META.get('HTTP_REFERER')  # grab the previous url from path
-            try:
-                query = requests.utils.urlparse(url).query
-                # the path from the query will be "next=/cart/checkout/" like this
-                # now we have to do the path like a dictionary like {"next": "/cart/checkout/"}
-                params = dict(x.split('=') for x in query.split('&'))
-                if 'next' in params:
-                    nextpage = params['next']
-                    return redirect(nextpage)
-            except:
-                return redirect('dashboard')
-        else:
-            messages.error(request, "Invalid Credentials. Please Try Again.")
-            return redirect('signin')
-
+                        for i in product_variation:
+                            if i in existing_variation_list:
+                                index = existing_variation_list.index(i)
+                                item_id = ids[index]
+                                item = CartItem.objects.get(id=item_id)
+                                item.quantity += 1
+                                item.user = user
+                                item.save()
+                            else:
+                                cart_item = CartItem.objects.filter(cart=cart)
+                                for j in cart_item:
+                                    j.user = user
+                                    j.save()
+                except (Cart.DoesNotExist, CartItem.DoesNotExist) as e:
+                    print(f"CartItem or Cart does not exist: {e}")
+                auth.login(request, user)
+                messages.success(request, "User Logged in Successfully")
+                url = request.META.get('HTTP_REFERER')  # grab the previous url from path
+                try:
+                    query = requests.utils.urlparse(url).query
+                    # the path from the query will be "next=/cart/checkout/" like this
+                    # now we have to do the path like a dictionary like {"next": "/cart/checkout/"}
+                    params = dict(x.split('=') for x in query.split('&'))
+                    if 'next' in params:
+                        nextpage = params['next']
+                        return redirect(nextpage)
+                except Exception as e:
+                    print(f"URL parsing error of getting next page: {e}")
+                    return redirect('dashboard')
+            else:
+                messages.error(request, "Invalid Credentials. Please Try Again.")
+                return redirect('signin')
+    except Exception as e:
+        print(f"Exception in signin function: {e}")
+        messages.error(request, f"Some error occured. Please try signin again.")
+        return redirect('signin')
     return render(request, 'accounts/signin.html')
 
 
@@ -87,40 +94,48 @@ def register(request):
     if request.method == "POST":
         form = RegistrationForm(request.POST)
         if form.is_valid():
-            full_name = form.cleaned_data['full_name']
-            email = form.cleaned_data['email']
-            password = form.cleaned_data['password']
-            confirm_password = form.cleaned_data['confirm_password']
-            phone_number = form.cleaned_data['phone_number']
-            username = form.cleaned_data['username']
-            user = Accounts.objects.create_account(
-                full_name=full_name,
-                email=email,
-                password=password,
-                username=username,
-            )
-            user.phone_number = phone_number
-            user.save()
-            # email verification
-            current_site = get_current_site(request)
-            mail_subject = "Please activate your account."
-            message = render_to_string('accounts/mail_message_verification.html', dict(
-                user=user,
-                domain=current_site,
-                uid=urlsafe_base64_encode(force_bytes(user.pk)),
-                token=default_token_generator.make_token(user),
-            ))
-            mail = email
-            send_mail = EmailMessage(mail_subject, message, to=[mail, ])
-            send_mail.send()
-            # messages.success(request, 'An email was sent for verification. Kindly click on that link to activate your account.')
-            return redirect('/accounts/signin/?command=verification&email=' + email)
+            try:
+                full_name = form.cleaned_data['full_name']
+                email = form.cleaned_data['email']
+                password = form.cleaned_data['password']
+                confirm_password = form.cleaned_data['confirm_password']
+                phone_number = form.cleaned_data['phone_number']
+                username = form.cleaned_data['username']
+                user = Accounts.objects.create_account(
+                    full_name=full_name,
+                    email=email,
+                    password=password,
+                    username=username,
+                )
+                user.phone_number = phone_number
+                user.save()
+                UserProfile.objects.create(user=user,)
+                try:
+                    # email verification
+                    current_site = get_current_site(request)
+                    mail_subject = "Please activate your account."
+                    message = render_to_string('accounts/mail_message_verification.html', dict(
+                        user=user,
+                        domain=current_site,
+                        uid=urlsafe_base64_encode(force_bytes(user.pk)),
+                        token=default_token_generator.make_token(user),
+                    ))
+                    mail = email
+                    send_mail = EmailMessage(mail_subject, message, to=[mail, ])
+                    send_mail.send()
+                except SMTPException as s:
+                    print(f"Error ooccured during sending verification link: {s}")
+                    messages.error(request, "Some error occured during sending verification link. Please try register again.")
+                    return redirect("register")
+                return redirect('/accounts/signin/?command=verification&email=' + email)
+            except Exception as e:
+                print(f"An error occured: {e}")
+                messages.error(request, "An error occured during registration. Please try register again.")
+                return redirect('register')
 
     else:
         form = RegistrationForm()
-    data = dict(
-        form=form,
-    )
+    data = dict(form=form,)
     return render(request, 'accounts/register.html', data)
 
 
@@ -171,23 +186,26 @@ def my_orders(request):
     )
     return render(request, 'accounts/my_orders.html', data)
 
-
+from django.http import Http404
 @login_required(login_url='signin')
 def edit_profile(request):
-    user_profile = get_object_or_404(UserProfile, user=request.user)
-    # if request.user:
-    #     user_profile = UserProfile.objects.get(user=request.user)
-    if request.method == "POST":
-        user_form = UserForm(request.POST, instance=request.user)
-        user_profile_form = UserProfileForm(request.POST, request.FILES, instance=user_profile)
-        if user_form.is_valid() and user_profile_form.is_valid():
-            user_form.save()
-            user_profile_form.save()
-            messages.success(request, "Your profile has been updated.")
-            return redirect('edit_profile')
-    else:
-        user_form = UserForm(instance=request.user)
-        user_profile_form = UserProfileForm(instance=user_profile)
+    try: 
+        user_profile = get_object_or_404(UserProfile, user=request.user)
+        # if request.user:
+        #     user_profile = UserProfile.objects.get(user=request.user)
+        if request.method == "POST":
+            user_form = UserForm(request.POST, instance=request.user)
+            user_profile_form = UserProfileForm(request.POST, request.FILES, instance=user_profile)
+            if user_form.is_valid() and user_profile_form.is_valid():
+                user_form.save()
+                user_profile_form.save()
+                messages.success(request, "Your profile has been updated.")
+                return redirect('edit_profile')
+        else:
+            user_form = UserForm(instance=request.user)
+            user_profile_form = UserProfileForm(instance=user_profile)
+    except Http404 as e:
+        user_profile = UserProfile.objects.get(user=request.user)
     data = dict(
         user_form=user_form,
         profile_form=user_profile_form,

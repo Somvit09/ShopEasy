@@ -12,7 +12,6 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 import os.path
 from pathlib import Path
 
-import whitenoise.middleware
 from django.core.management.utils import get_random_secret_key
 # pip install python-decouple
 from decouple import config
